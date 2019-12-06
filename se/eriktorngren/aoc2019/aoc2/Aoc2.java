@@ -20,22 +20,18 @@ public class Aoc2 {
 				records = Arrays.asList(values);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		List<Integer> computer = new ArrayList<Integer>();
 		for(String s : records) computer.add(Integer.valueOf(s));
 		//restore the gravity assist program
 		int output = 19690720;
-
-		
 		testProgram(output, computer);
 		int answer = 100 * noun + verb;
 		System.out.println(answer);
 	}
 
 	private static void testProgram(int output, List<Integer> computer) {
-
 		int testOutput = 0;
 		while (noun < 100) {
 			while (verb < 100) {
@@ -52,7 +48,6 @@ public class Aoc2 {
 			System.out.println("NOne found");
 			return;
 		}
-		
 	}
 
 	private static int runSequence(int noun, int verb, List<Integer> computer) {
@@ -65,7 +60,6 @@ public class Aoc2 {
 		int second;
 		int index;
 		while (current != 99) {
-
 			first = testComputer.get(i+1);
 			second = testComputer.get(i+2);
 			index = testComputer.get(i+3);
@@ -81,5 +75,4 @@ public class Aoc2 {
 		}
 		return testComputer.get(0);
 	}
-
 }

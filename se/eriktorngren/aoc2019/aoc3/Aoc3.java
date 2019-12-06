@@ -144,10 +144,6 @@ public class Aoc3 {
             this.y = y;
         }
 
-//        public int hashCode() {
-//            return new Integer(x + 31*y);
-//        }
-        
         public String toString() {
         	return "X: " + x + " Y: " + y;
         }
