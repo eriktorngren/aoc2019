@@ -11,7 +11,7 @@ public class Aoc7 {
 
 	public static void main(String[] args) {
 		List<String> records = null;
-		try (BufferedReader br = new BufferedReader(new FileReader("/Users/Erik/Documents/AOC2019/aoc2019/se/eriktorngren/aoc2019/aoc7/input.txt"))) {
+		try (BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\Erik\\Documents\\aoc2019\\aoc2019\\se\\eriktorngren\\aoc2019\\aoc7\\input.txt"))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] values = line.split(",");
@@ -26,7 +26,7 @@ public class Aoc7 {
 
 		for(String s : records) computer.add(Integer.valueOf(s));
 		List<Integer> phase = new ArrayList<Integer>();
-		for (int i=0; i<5; i++) {
+		for (int i=5; i<10; i++) {
 			phase.add(i);
 		}
 		List<List<Integer>> phaseSettings = generatePerm(phase);
@@ -36,13 +36,14 @@ public class Aoc7 {
 		int highestOutput = 0;
 		for (int i = 0; i<phaseSettings.size(); i++) {
 			int output = 0;
-			for (int setting : phaseSettings.get(i)) {
-				output = runSequence(computer, setting, output);
-			}
+			output = runSequence(computer, phaseSettings.get(i));
 			highestOutput = output > highestOutput ? output : highestOutput;
 		}
+		
+		//System.out.println(runSequence(computer, phaseSettings.get(119)));
 		System.out.println(highestOutput);
 	}
+
 
 	//4 43 432 4321
 	public static List<List<Integer>> generatePerm(List<Integer> original) {
@@ -64,10 +65,12 @@ public class Aoc7 {
 		return returnValue;
 	}
 
-	public static int runSequence(List<Integer> computer, int setting, int output) {
-		int switcher = 0;
-		int i = 0;
-		String current = computer.get(0).toString();
+	public static int runSequence(List<Integer> initialComputer, List<Integer> phaseSettings) {
+		int[] rows = new int[10];
+		List<List<Integer>> computers = new ArrayList<List<Integer>>();
+		for (int j = 0; j<10; j++) {
+			computers.add(new ArrayList<Integer>(initialComputer));
+		}
 		int opcode = 0;
 		int modeFirst;
 		int modeSecond;
@@ -76,74 +79,100 @@ public class Aoc7 {
 		int first;
 		int second;
 		int index;
+		int input;
+		int output = 0;
+		int lastOutput = 0;
+		int i = 0;
+		List<Integer> computer;
+		while (true) {
 
-		while (Integer.valueOf(current) != 99) {
-			String modes = String.format("%05d", Integer.valueOf(current));
-			opcode = Integer.parseInt(modes.substring(3));
-			modeFirst = Character.getNumericValue(modes.charAt(2));
-			modeSecond = Character.getNumericValue(modes.charAt(1));
-			first = computer.get(i+1);
-			firstGet = modeFirst == 0 ? computer.get(first) : first;
-			if (opcode == 1) {	
-				second = computer.get(i+2);
-				index = computer.get(i+3);
-				secondGet = modeSecond == 0 ? computer.get(second) : second;
-				computer.set(index, firstGet+secondGet);
-				i += 4;
-			} else if (opcode == 2) {	
-				second = computer.get(i+2);
-				index = computer.get(i+3);		
-				secondGet = modeSecond == 0 ? computer.get(second) : second;
-				computer.set(index, firstGet*secondGet);
-				i += 4;
-			} else if (opcode == 3) {
-				int input = switcher == 0 ? setting : output;
-				switcher = 1;
-				//System.out.println("Input: " + input);
-				computer.set(first, input);
-				i += 2;
-			} else if (opcode == 4) {
-				//System.out.println("Output: " + firstGet);
-				output= firstGet;
-				i += 2;
-			} else if (opcode == 5) {
-				if (firstGet != 0) {
-					second = computer.get(i+2);
-					i = modeSecond == 0 ? computer.get(second) : second;
-				} else {
-					i += 3;
+			for (int setting : phaseSettings) {
+				computer = computers.get(setting);
+				i = rows[setting];
+				String current = computer.get(i).toString();
+				while (Integer.valueOf(current) != 99) {
+					String modes = String.format("%05d", Integer.valueOf(current));
+					opcode = Integer.parseInt(modes.substring(3));
+					modeFirst = Character.getNumericValue(modes.charAt(2));
+					modeSecond = Character.getNumericValue(modes.charAt(1));
+					first = computer.get(i+1);
+					firstGet = modeFirst == 0 ? computer.get(first) : first;
+					if (opcode == 1) {	
+						second = computer.get(i+2);
+						index = computer.get(i+3);
+						secondGet = modeSecond == 0 ? computer.get(second) : second;
+						computer.set(index, firstGet+secondGet);
+						i += 4;
+					} else if (opcode == 2) {	
+						second = computer.get(i+2);
+						index = computer.get(i+3);		
+						secondGet = modeSecond == 0 ? computer.get(second) : second;
+						computer.set(index, firstGet*secondGet);
+						i += 4;
+					} else if (opcode == 3) {
+						if (rows[setting] == 0) {
+							input = setting;
+						} else {
+							input = output;
+						}
+						//System.out.println("Input: " + input);
+						computer.set(first, input);
+						i += 2;
+						rows[setting] = i;
+					} else if (opcode == 4) {
+						//System.out.println("Output: " + firstGet);
+						output= firstGet;
+						if (setting == phaseSettings.get(4)) {
+							lastOutput = output;
+						}
+						i += 2;
+						rows[setting] = i;
+						computers.set(setting, computer);
+						break;
+					} else if (opcode == 5) {
+						if (firstGet != 0) {
+							second = computer.get(i+2);
+							i = modeSecond == 0 ? computer.get(second) : second;
+						} else {
+							i += 3;
+						}
+					}  else if (opcode == 6) {
+						if (firstGet == 0) {
+							second = computer.get(i+2);
+							i = modeSecond == 0 ? computer.get(second) : second;
+						} else {
+							i += 3;
+						}
+					} else if (opcode == 7) {
+						second = computer.get(i+2);
+						secondGet = modeSecond == 0 ? computer.get(second) : second;
+						if (firstGet < secondGet) {
+							computer.set(computer.get(i+3), 1);
+						} else {
+							computer.set(computer.get(i+3), 0);
+						}
+						i += 4;
+					} else if (opcode == 8) {
+						second = computer.get(i+2);
+						secondGet = modeSecond == 0 ? computer.get(second) : second;
+						if (firstGet == secondGet) {
+							computer.set(computer.get(i+3), 1);
+						} else {
+							computer.set(computer.get(i+3), 0);
+						}
+						i += 4;
+					} else {
+						break;
+					}
+					current =  computer.get(i).toString();
 				}
-			}  else if (opcode == 6) {
-				if (firstGet == 0) {
-					second = computer.get(i+2);
-					i = modeSecond == 0 ? computer.get(second) : second;
-				} else {
-					i += 3;
+				if (Integer.valueOf(current) == 99) {
+					return lastOutput;
 				}
-			} else if (opcode == 7) {
-				second = computer.get(i+2);
-				secondGet = modeSecond == 0 ? computer.get(second) : second;
-				if (firstGet < secondGet) {
-					computer.set(computer.get(i+3), 1);
-				} else {
-					computer.set(computer.get(i+3), 0);
-				}
-				i += 4;
-			} else if (opcode == 8) {
-				second = computer.get(i+2);
-				secondGet = modeSecond == 0 ? computer.get(second) : second;
-				if (firstGet == secondGet) {
-					computer.set(computer.get(i+3), 1);
-				} else {
-					computer.set(computer.get(i+3), 0);
-				}
-				i += 4;
-			} else {
-				break;
+				computers.set(setting, computer);
 			}
-			current =  computer.get(i).toString();
+
 		}
-		return output;
 	}
 
 }
