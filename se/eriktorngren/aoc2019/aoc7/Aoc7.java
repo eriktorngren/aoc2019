@@ -9,7 +9,10 @@ import java.util.List;
 
 public class Aoc7 {
 
+	static Boolean WITH_FEEDBACK = true;
+	
 	public static void main(String[] args) {
+		
 		List<String> records = null;
 		try (BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\Erik\\Documents\\aoc2019\\aoc2019\\se\\eriktorngren\\aoc2019\\aoc7\\input.txt"))) {
 			String line;
@@ -26,7 +29,14 @@ public class Aoc7 {
 
 		for(String s : records) computer.add(Integer.valueOf(s));
 		List<Integer> phase = new ArrayList<Integer>();
-		for (int i=5; i<10; i++) {
+		for (int i=0; i<10; i++) {
+			if (WITH_FEEDBACK && i == 0) {
+				i = 5;
+			} else {
+				if (i == 5) {
+					break;
+				}
+			}
 			phase.add(i);
 		}
 		List<List<Integer>> phaseSettings = generatePerm(phase);
