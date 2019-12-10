@@ -17,9 +17,12 @@ import java.util.concurrent.TimeUnit;
 
 public class Aoc9 {
 
+	static List<Long> computer = new ArrayList<Long>();
+	static int relativeBase = 0;
+	
 	public static void main(String[] args) {
 		List<String> records = null;
-		try (BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\Erik\\Documents\\aoc2019\\aoc2019\\se\\eriktorngren\\aoc2019\\aoc9\\input.txt"))) {
+		try (BufferedReader br = new BufferedReader(new FileReader("/Users/Erik/Documents/AOC2019/aoc2019/se/eriktorngren/aoc2019/aoc9/input.txt"))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] values = line.split(",");
@@ -28,25 +31,26 @@ public class Aoc9 {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		List<Long> computer = new ArrayList<Long>();
+		
 		for(String s : records) computer.add(Long.valueOf(s));
 		System.out.println(computer);
 		int computerSize = 10000;
 		for (int i = 1; i<computerSize; i++ ) {
 			computer.add((long) 0);
 		}
-		runSequence(computer);
+		runSequence();
 	}
 	
-	public static void runSequence(List<Long> computer) {
+	public static void runSequence() {
 		int i = 0;
-		int relativeBase = 0;
 		String current = computer.get(0).toString();
 		int opcode = 0;
 		int modeFirst;
 		int modeSecond;
+		int modeIndex;
 		long firstGet;
 		long secondGet;
+		int indexGet;
 		long first;
 		long second;
 		int index;
@@ -57,65 +61,51 @@ public class Aoc9 {
 			opcode = Integer.parseInt(modes.substring(3));
 			modeFirst = Character.getNumericValue(modes.charAt(2));
 			modeSecond = Character.getNumericValue(modes.charAt(1));
-			first = computer.get(i+1);
-			firstGet = getFromMode(modeFirst, first, relativeBase, computer);
-			if (opcode == 1) {	
-				second = computer.get(i+2);
-				index = Math.toIntExact(computer.get(i+3));
-				secondGet = getFromMode(modeSecond, second, relativeBase, computer);
-				//System.out.println(index);
-				computer.set(index, firstGet+secondGet);
+			modeIndex = Character.getNumericValue(modes.charAt(0));
+			first = i+1;
+			second = i+2;
+			index = i+3;
+			if (opcode == 1) {
+				computer.set(getWriteMode(modeIndex, index), getReadMode(modeFirst, first)+getReadMode(modeSecond, second));
 				i += 4;
-			} else if (opcode == 2) {	
-				second = computer.get(i+2);
-				index = Math.toIntExact(computer.get(i+3));		
-				secondGet = getFromMode(modeSecond, second, relativeBase, computer);
-				//System.out.println(index);
-				computer.set(index, firstGet*secondGet);
+			} else if (opcode == 2) {
+				computer.set(getWriteMode(modeIndex, index), getReadMode(modeFirst, first)*getReadMode(modeSecond, second));
 				i += 4;
 			} else if (opcode == 3) {
 				System.out.println("Give input:");
-				computer.set(Math.toIntExact(first), Long.valueOf(in.nextLine()));
+				computer.set(Math.toIntExact(getWriteMode(modeFirst, first)), Long.valueOf(in.nextLine()));
 				i += 2;
 			} else if (opcode == 4) {
-				System.out.println("Output: " + firstGet);
+				System.out.println("Output: " + getReadMode(modeFirst, first));
 				i += 2;
 			} else if (opcode == 5) {
-				if (firstGet != 0) {
-					second = computer.get(i+2);
-					i = Math.toIntExact(getFromMode(modeSecond, second, relativeBase, computer));
+				if (getReadMode(modeFirst, first) != 0) {
+					i = Math.toIntExact(getReadMode(modeSecond, second));
 				} else {
 					i += 3;
 				}
 			}  else if (opcode == 6) {
-				if (firstGet == 0) {
-					second = computer.get(i+2);
-					i = Math.toIntExact(getFromMode(modeSecond, second, relativeBase, computer));
+				if (getReadMode(modeFirst, first) == 0) {
+					i = Math.toIntExact(getReadMode(modeSecond, second));
 				} else {
 					i += 3;
 				}
 			} else if (opcode == 7) {
-				second = computer.get(i+2);
-				secondGet = getFromMode(modeSecond, second, relativeBase, computer);
-				index = Math.toIntExact(computer.get(i+3));
-				if (firstGet < secondGet) {
-					computer.set(index, (long) 1);
+				if (getReadMode(modeFirst, first) < getReadMode(modeSecond, second)) {
+					computer.set(getWriteMode(modeIndex, index), (long) 1);
 				} else {
-					computer.set(index, (long) 0);
+					computer.set(getWriteMode(modeIndex, index), (long) 0);
 				}
 				i += 4;
 			} else if (opcode == 8) {
-				second = computer.get(i+2);
-				secondGet = getFromMode(modeSecond, second, relativeBase, computer);
-				index = Math.toIntExact(computer.get(i+3));
-				if (firstGet == secondGet) {
-					computer.set(index, (long) 1);
+				if (getReadMode(modeFirst, first) == getReadMode(modeSecond, second)) {
+					computer.set(getWriteMode(modeIndex, index), (long) 1);
 				} else {
-					computer.set(index, (long) 0);
+					computer.set(getWriteMode(modeIndex, index), (long) 0);
 				}
 				i += 4;
 			} else if (opcode == 9) {
-				relativeBase += computer.get(Math.toIntExact(firstGet));
+				relativeBase += getReadMode(modeFirst, first);
 				i += 2;
 			} else {
 				break;
@@ -124,13 +114,24 @@ public class Aoc9 {
 		}
 	}
 
-	private static long getFromMode(int mode, long param, int relativeBase, List<Long> computer) {
+	private static long getReadMode(int mode, long param) {
 		if (mode == 0) {
-			return computer.get(Math.toIntExact(param));
+			return computer.get(Math.toIntExact(computer.get(Math.toIntExact(param))));
 		} else if (mode == 1) {
-			return param;
+			return computer.get((int) param);
 		} else {
-			return (long) computer.get(Math.toIntExact(param)+relativeBase);
+			return (long) computer.get((int) (computer.get(Math.toIntExact(param))+relativeBase));
+		}
+	}
+	
+	private static int getWriteMode(int mode, long param) {
+		if (mode == 0) {
+			return Math.toIntExact(computer.get(Math.toIntExact(param)));
+		} else if (mode == 1) {
+			System.out.println("ERROR");
+			return -1;
+		} else {
+			return  Math.toIntExact(computer.get(Math.toIntExact(param))+relativeBase);
 		}
 	}
 
