@@ -27,7 +27,6 @@ public class Aoc7 {
 		for(String s : records) computer.add(Integer.valueOf(s));
 		System.out.println(computer);
 
-		for(String s : records) computer.add(Integer.valueOf(s));
 		List<Integer> phase = new ArrayList<Integer>();
 		for (int i=0; i<10; i++) {
 			if (WITH_FEEDBACK && i == 0) {
